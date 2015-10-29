@@ -1,6 +1,6 @@
 (function (global, doc) {
 
-	var targets = [],
+    var targets = [],
         nonPrintable = {
             8: 'backspace',
             9: 'tab',
@@ -72,14 +72,14 @@
 
     }
 
-	function indexWithinTargets (target) {
+    function indexWithinTargets (target) {
 
-		// look for a KeyCatch instance wrapping 'target'
-		return targets.findIndex(function (keyCatchInstance) {
-			return keyCatchInstance.target === target;
-		});
+        // look for a KeyCatch instance wrapping 'target'
+        return targets.findIndex(function (keyCatchInstance) {
+            return keyCatchInstance.target === target;
+        });
 
-	}
+    }
 
     // Actual Class
     function KeyCatch (target) {
@@ -89,7 +89,7 @@
         // look for a KeyCatch instance wrapping 'target'
         var index = indexWithinTargets(target);
 
-		// act as a singleton per target
+        // act as a singleton per target
         // does this target already exist?
         if (index >= 0) {
             return targets[index];
@@ -106,18 +106,18 @@
         }
         // targets[target] = this;
 
-    	this.target = target;
+        this.target = target;
         this.listening = false;
         this.listeners = {};
 
-		// create a scoped version of KeyCatch.prototype.onKeyboardEvent
-		this.scopedResponder = this.onKeyboardEvent.bind(this);
+        // create a scoped version of KeyCatch.prototype.onKeyboardEvent
+        this.scopedResponder = this.onKeyboardEvent.bind(this);
 
     }
 
     // static methods
 
-	// prevent the default action for an event
+    // prevent the default action for an event
     KeyCatch.preventDefault = function preventDefault (e) {
         if (e.preventDefault) {
             e.preventDefault();
@@ -126,17 +126,17 @@
         e.returnValue = false;
     }
 
-	// stop the propgation of an event
+    // stop the propgation of an event
     KeyCatch.stopPropagation = function stopPropagation (e) {
-    	if (e.stopPropagation) {
+        if (e.stopPropagation) {
             e.stopPropagation();
             return;
         }
         e.cancelBubble = true;
     }
 
-	// from a KeyBoardEvent retrieve an actual character (i.e. *, 9, (, shift, #))
-	// https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
+    // from a KeyBoardEvent retrieve an actual character (i.e. *, 9, (, shift, #))
+    // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
     KeyCatch.getCharacter = function getCharacter (e) {
 
         // normalize character
@@ -165,7 +165,7 @@
 
     }
 
-	// given a key (i.e. *, i, L, 0, shift), choose the best action (i.e. keydown, keypress) to respond to
+    // given a key (i.e. *, i, L, 0, shift), choose the best action (i.e. keydown, keypress) to respond to
     KeyCatch.chooseAction = function chooseAction (key, action) {
 
         if (action) {
@@ -175,7 +175,7 @@
         // if found
         var found = false;
 
-       	// handle non printable
+           // handle non printable
         for (keyCode in nonPrintable) {
             if (nonPrintable[keyCode] === key) {
                 found = true;
@@ -184,7 +184,7 @@
 
         // handle special keys
         for (keyCode in specialCharacters) {
-        	if (specialCharacters[keyCode] === key) {
+            if (specialCharacters[keyCode] === key) {
                 found = true;
             }
         }
@@ -195,14 +195,14 @@
 
     // instance methods
 
-	// Enable or disable a KeyCatch instance's listeners
+    // Enable or disable a KeyCatch instance's listeners
     KeyCatch.prototype.toggleListeners = function () {
 
         if (Object.keys(this.listeners).length && !this.listening) {
 
             addEvent(this.target, 'keypress', this.scopedResponder);
-       		addEvent(this.target, 'keydown', this.scopedResponder);
-        	addEvent(this.target, 'keyup', this.scopedResponder);
+               addEvent(this.target, 'keydown', this.scopedResponder);
+            addEvent(this.target, 'keyup', this.scopedResponder);
 
             this.listening = true;
 
@@ -218,7 +218,7 @@
 
     };
 
-	// handle any keyboard action
+    // handle any keyboard action
     KeyCatch.prototype.onKeyboardEvent = function (e) {
 
         var character = KeyCatch.getCharacter(e);
@@ -229,8 +229,8 @@
 
         // do we have any listeners for the key + type combination?
         var type = ((e.type === 'keyup') ? 'keyup' : KeyCatch.chooseAction(character)),
-			unique = character + ':' + type,
-			wildcard = '?:?';
+            unique = character + ':' + type,
+            wildcard = '?:?';
 
         if (Object.keys(this.listeners).indexOf(unique) >= 0) {
 
@@ -242,20 +242,20 @@
 
         }
 
-		// support wildcards
-		if (Object.keys(this.listeners).indexOf(wildcard) >= 0 && (type === 'keydown' || type === 'keypress')) {
+        // support wildcards
+        if (Object.keys(this.listeners).indexOf(wildcard) >= 0 && (type === 'keydown' || type === 'keypress')) {
 
-			this.listeners[wildcard].filter(function (listener) {
+            this.listeners[wildcard].filter(function (listener) {
                 return listener.combination === wildcard;
             }).forEach(function (listener) {
                 fireCallback(listener.callback, e, character);
             });
 
-		}
+        }
 
     };
 
-	// bind this instance of KeyCatch to a key, listener and action
+    // bind this instance of KeyCatch to a key, listener and action
     KeyCatch.prototype.on = function (key, listener, action) {
 
         var unique = key + ':' + KeyCatch.chooseAction(key, action);
@@ -265,10 +265,10 @@
             this.listeners[unique] = [];
         }
 
-		// handle use case of listener being a false boolean
-		// create a function that will simply stop propagation
+        // handle use case of listener being a false boolean
+        // create a function that will simply stop propagation
         this.listeners[unique].push({
-        	combination: unique,
+            combination: unique,
             callback: (typeof listener === 'boolean' && listener === false) ? function () { return false; } : listener
         });
 
@@ -276,27 +276,27 @@
 
     };
 
-	KeyCatch.prototype.all = function (listener) {
+    KeyCatch.prototype.all = function (listener) {
 
-		var unique = '?:?';
+        var unique = '?:?';
 
-		// store references to the new listener in the listeners object
+        // store references to the new listener in the listeners object
         if (!this.listeners[unique]) {
             this.listeners[unique] = [];
         }
 
-		// handle use case of listener being a false boolean
-		// create a function that will simply stop propagation
+        // handle use case of listener being a false boolean
+        // create a function that will simply stop propagation
         this.listeners[unique].push({
-        	combination: unique,
+            combination: unique,
             callback: (typeof listener === 'boolean' && listener === false) ? function () { return false; } : listener
         });
 
         this.toggleListeners();
 
-	};
+    };
 
-	// unbind this instance of KeyCatch from a key, listener and action combination
+    // unbind this instance of KeyCatch from a key, listener and action combination
     KeyCatch.prototype.off = function (key, listener, action) {
 
         var unique = key + ':' + KeyCatch.chooseAction(key, action);
@@ -307,19 +307,19 @@
             // remove some elements from the array
             for (var i = 0; i < this.listeners[unique].length; i++) {
 
-				var bRemove = false;
+                var bRemove = false;
 
-				// if listener is undefined or null, don't try and match the listener
-				// just the key itself
-				if ((listener == undefined || listener === null) && this.listeners[unique][i].combination === unique) {
-					bRemove = true;
-				} else if (this.listeners[unique][i].combination === unique && this.listeners[unique][i].callback === listener) {
+                // if listener is undefined or null, don't try and match the listener
+                // just the key itself
+                if ((listener == undefined || listener === null) && this.listeners[unique][i].combination === unique) {
+                    bRemove = true;
+                } else if (this.listeners[unique][i].combination === unique && this.listeners[unique][i].callback === listener) {
                     bRemove = true;
                 }
 
-				if (bRemove === true) {
-					this.listeners[unique].splice(i, 1);
-				}
+                if (bRemove === true) {
+                    this.listeners[unique].splice(i, 1);
+                }
 
             }
 
@@ -333,7 +333,7 @@
 
     }
 
-	// reset this instance of KeyCatch
+    // reset this instance of KeyCatch
     KeyCatch.prototype.reset = function () {
 
         this.listeners = {};
@@ -341,8 +341,8 @@
 
     };
 
-	// create a bunch of public static events, that actually return
-	// a target wrapped KeyCatch instance
+    // create a bunch of public static events, that actually return
+    // a target wrapped KeyCatch instance
     KeyCatch.static = function () {
 
         ['on','off','reset','all'].forEach(function (staticFunctionName) {
@@ -351,13 +351,13 @@
 
                 return function () {
 
-					// look for a KeyCatch instance wrapping 'target'
-			        var index = indexWithinTargets(doc);
+                    // look for a KeyCatch instance wrapping 'target'
+                    var index = indexWithinTargets(doc);
 
-					if (index < 0) {
-						var instance = new KeyCatch(doc);
-						index = indexWithinTargets(doc);
-					}
+                    if (index < 0) {
+                        var instance = new KeyCatch(doc);
+                        index = indexWithinTargets(doc);
+                    }
 
                     return targets[index][staticFunctionName].apply(targets[index], arguments);
 
@@ -369,36 +369,36 @@
 
     }
 
-	// setup the public static on the KeyCatch object itself
+    // setup the public static on the KeyCatch object itself
     KeyCatch.static();
 
-	// Attach the KeyCatch object to our global
-	global.KeyCatch = KeyCatch;
+    // Attach the KeyCatch object to our global
+    global.KeyCatch = KeyCatch;
 
-	// findIndex polyfill
-	if (!Array.prototype.findIndex) {
-		Array.prototype.findIndex = function (predicate) {
+    // findIndex polyfill
+    if (!Array.prototype.findIndex) {
+        Array.prototype.findIndex = function (predicate) {
 
-			if (this === null) {
-				throw new TypeError('Array.prototype.findIndex called on null or undefined');
-			}
+            if (this === null) {
+                throw new TypeError('Array.prototype.findIndex called on null or undefined');
+            }
 
-			if (typeof predicate !== 'function') {
-				throw new TypeError('predicate must be a function');
-			}
+            if (typeof predicate !== 'function') {
+                throw new TypeError('predicate must be a function');
+            }
 
-			var list = Object(this);
-			var length = list.length >>> 0;
+            var list = Object(this);
+            var length = list.length >>> 0;
 
-			for (var i = 0; i < length; i++) {
-				if (predicate.call(arguments[1], list[i], i, list)) {
-					return i;
-				}
-			}
+            for (var i = 0; i < length; i++) {
+                if (predicate.call(arguments[1], list[i], i, list)) {
+                    return i;
+                }
+            }
 
-			return -1;
+            return -1;
 
-		};
-	}
+        };
+    }
 
 })(window, document);
